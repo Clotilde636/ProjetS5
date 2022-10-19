@@ -6,6 +6,7 @@
 package tpa2dosdatliautard.projetbdd_s5;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
@@ -44,33 +45,34 @@ public class Encheres {
             // creation des tables
             st.executeUpdate(
                     """
-                    create table Encheres (
+                    create table encheres (
                         idEnchere integer not null primary key
                         generated always as identity,
                         dateDebut varchar(30) not null,
-                        dateFin varchar(30) not null
+                        dateFin varchar(30) not null,
                         idArticle integer not null,
-                        etatEnchere integer not null
-                        emailVendeur varchar(30) not null,
+                        etatEnchere integer not null,
+                        emailVendeur varchar(50) not null,
                         prixMinimal float not null
                     )
                     """);
             st.executeUpdate(
                     """
-                    create table Personne (
-                        email varchar(30) not null primary key
+                    create table personne (
+                        idPersonne integer not null primary key
                         generated always as identity,
+                        email varchar(50) not null unique,
                         nom varchar(30) not null,
                         prenom varchar(30) not null,
                         password varchar(30) not null,
-                        codePostal varchar(30) not null,
-                        ville varchar(30) not null,
+                        codePostal integer not null,
+                        ville varchar(30) not null
                     )
                     """);
             st.executeUpdate(
                     """
-                    create table Articles (
-                        idArticle varchar(30) not null primary key
+                    create table articles (
+                        idArticle integer not null primary key
                         generated always as identity,
                         descriptionC varchar(200) not null,
                         descriptionL varchar(1000) not null,
@@ -80,21 +82,21 @@ public class Encheres {
                     """);
             st.executeUpdate(
                     """
-                    alter table Articles
+                    alter table articles
                         add constraint fk_articles_emailVendeur
-                        foreign key (emailVendeur) references Personne(email)
+                        foreign key (emailVendeur) references personne(email)
                     """);
             st.executeUpdate(
                     """
-                    alter table Encheres
+                    alter table encheres
                         add constraint fk_encheres_idArticle
-                        foreign key (idArticle) references Articles(idArticle)
+                        foreign key (idArticle) references articles(idArticle)
                     """);
             st.executeUpdate(
                     """
-                    alter table Encheres
+                    alter table encheres
                         add constraint fk_encheres_emailVendeur
-                        foreign key (emailVendeur) references Personne(email)
+                        foreign key (emailVendeur) references personne(email)
                     """);
             con.commit();
             con.setAutoCommit(true);
@@ -152,6 +154,19 @@ public class Encheres {
             }
         }
     }
+    
+    public static void createEncheres(Connection con, int idU1, int idU2)
+            throws SQLException {
+        try ( PreparedStatement pst = con.prepareStatement(
+                """
+                insert into aime (u1,u2) values (?,?)
+                """)) {
+            pst.setInt(1, idU1);
+            pst.setInt(2, idU2);
+            pst.executeUpdate();
+        }
+    }
+
     
     public static void main(String[] args) {
         try {
