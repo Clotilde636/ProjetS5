@@ -2,6 +2,8 @@ package tpa2dosdatliautard.projetbdd_s5;
 import java.sql.*;
 import java.lang.*;
 
+// test push Emilien
+
 public class Administrateur extends Personne {
 //Attributs
     private int randomVariable; //modèle à suivre pour rajouter des paramètres pour Administrateur, en plus de celles déjà créées par la superclasse Personne
