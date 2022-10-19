@@ -44,7 +44,25 @@ public class Encheres {
             // creation des tables
             st.executeUpdate(
                     """
-                    create table Clients (
+                    create table Encheres (
+                        id integer not null primary key
+                        generated always as identity,
+                        nom varchar(30) not null unique,
+                        pass varchar(30) not null
+                    )
+                    """);
+            st.executeUpdate(
+                    """
+                    create table Utilisateurs (
+                        id integer not null primary key
+                        generated always as identity,
+                        nom varchar(30) not null unique,
+                        pass varchar(30) not null
+                    )
+                    """);
+            st.executeUpdate(
+                    """
+                    create table Articles (
                         id integer not null primary key
                         generated always as identity,
                         nom varchar(30) not null unique,
@@ -71,6 +89,53 @@ public class Encheres {
         }
     }
 
+    public static void deleteSchema(Connection con) throws SQLException {
+        try ( Statement st = con.createStatement()) {
+            // pour être sûr de pouvoir supprimer, il faut d'abord supprimer les liens
+            // puis les tables
+            // suppression des liens
+            try {
+                st.executeUpdate(
+                        """
+                    alter table aime
+                        drop constraint fk_aime_u1
+                             """);
+                System.out.println("constraint fk_aime_u1 dropped");
+            } catch (SQLException ex) {
+                // nothing to do : maybe the constraint was not created
+            }
+            try {
+                st.executeUpdate(
+                        """
+                    alter table aime
+                        drop constraint fk_aime_u2
+                    """);
+                System.out.println("constraint fk_aime_u2 dropped");
+            } catch (SQLException ex) {
+                // nothing to do : maybe the constraint was not created
+            }
+            // je peux maintenant supprimer les tables
+            try {
+                st.executeUpdate(
+                        """
+                    drop table aime
+                    """);
+                System.out.println("dable aime dropped");
+            } catch (SQLException ex) {
+                // nothing to do : maybe the table was not created
+            }
+            try {
+                st.executeUpdate(
+                        """
+                    drop table utilisateur
+                    """);
+                System.out.println("table utilisateur dropped");
+            } catch (SQLException ex) {
+                // nothing to do : maybe the table was not created
+            }
+        }
+    }
+    
     public static void main(String[] args) {
         try {
             Connection con = defautConnect();
