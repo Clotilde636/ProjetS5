@@ -45,46 +45,63 @@ public class Encheres {
             st.executeUpdate(
                     """
                     create table Encheres (
-                        id integer not null primary key
+                        idEnchere integer not null primary key
                         generated always as identity,
-                        nom varchar(30) not null unique,
-                        pass varchar(30) not null
+                        dateDebut varchar(30) not null,
+                        dateFin varchar(30) not null
+                        idArticle integer not null,
+                        etatEnchere integer not null
+                        emailVendeur varchar(30) not null,
+                        prixMinimal float not null
                     )
                     """);
             st.executeUpdate(
                     """
-                    create table Utilisateurs (
-                        id integer not null primary key
+                    create table Personne (
+                        email varchar(30) not null primary key
                         generated always as identity,
-                        nom varchar(30) not null unique,
-                        pass varchar(30) not null
+                        nom varchar(30) not null,
+                        prenom varchar(30) not null,
+                        password varchar(30) not null,
+                        codePostal varchar(30) not null,
+                        ville varchar(30) not null,
                     )
                     """);
             st.executeUpdate(
                     """
                     create table Articles (
-                        id integer not null primary key
+                        idArticle varchar(30) not null primary key
                         generated always as identity,
-                        nom varchar(30) not null unique,
-                        pass varchar(30) not null
+                        descriptionC varchar(200) not null,
+                        descriptionL varchar(1000) not null,
+                        idCategorie integer not null,
+                        emailVendeur varchar(50) not null
                     )
                     """);
-            // si j'arrive jusqu'ici, c'est que tout s'est bien passÃ©
-            // je confirme (commit) la transaction
+            st.executeUpdate(
+                    """
+                    alter table Articles
+                        add constraint fk_articles_emailVendeur
+                        foreign key (emailVendeur) references Personne(email)
+                    """);
+            st.executeUpdate(
+                    """
+                    alter table Encheres
+                        add constraint fk_encheres_idArticle
+                        foreign key (idArticle) references Articles(idArticle)
+                    """);
+            st.executeUpdate(
+                    """
+                    alter table Encheres
+                        add constraint fk_encheres_emailVendeur
+                        foreign key (emailVendeur) references Personne(email)
+                    """);
             con.commit();
-            // je retourne dans le mode par dÃ©faut de gestion des transaction :
-            // chaque ordre au SGBD sera considÃ©rÃ© comme une transaction indÃ©pendante
             con.setAutoCommit(true);
         } catch (SQLException ex) {
-            // quelque chose s'est mal passÃ©
-            // j'annule la transaction
             con.rollback();
-            // puis je renvoie l'exeption pour qu'elle puisse Ã©ventuellement
-            // Ãªtre gÃ©rÃ©e (message Ã  l'utilisateur...)
             throw ex;
         } finally {
-            // je reviens Ã  la gestion par dÃ©faut : une transaction pour
-            // chaque ordre SQL
             con.setAutoCommit(true);
         }
     }
