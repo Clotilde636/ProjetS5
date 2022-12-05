@@ -1,50 +1,82 @@
 package tpa2dosdatliautard.projetbdd_s5;
 import java.sql.*;
-import java.lang.*;
+import tpa2dosdatliautard.projetbdd_s5.Utilisateur.EmailExisteDejaException;
 
 
 public class Personne {
 //Attributs
     public final String email; //final=>variable non modifiable une fois initialisée
     private String pass;
-    private String nom;
-    private String prenom;
-    private int codePostal;
     
 //Constructeur
-    public Personne(String email,String pass,String nom,String prenom, int codePostal){
+    public Personne(String email,String pass){
         this.email=email;
         this.pass=pass;
-        this.nom=nom;
-        this.prenom=prenom;
-        this.codePostal=codePostal; 
     }
     
 //Méthodes Get Set
-    //pas de méthode get set pour email, car public et final
+    //pas de méthode set pour email, car public et final
+    public String get_email(){
+        return this.email;
+    } 
     public String get_pass(){
         return this.pass;
     } 
-    public String get_nom(){
-        return this.nom;
-    } 
-    public String get_prenom(){
-        return this.prenom;
-    } 
-    public int get_codePostal(){
-        return this.codePostal;
-    } 
+    
     public void set_pass(String newPass) {
-        this.nom = newPass;
-    }
-    public void set_nom(String newNom) {
-        this.nom = newNom;
-    }
-     public void set_prenom(String newPrenom) {
-        this.prenom = newPrenom;
-    }
-     public void set_description_D(int newCodePostal) {
-        this.codePostal = newCodePostal;
+        this.pass = newPass;
     }
     
+    public static int creerPersonne (Connection con, String email, String pass,String nom,String prenom, String codePostal, String ville)
+            throws SQLException, EmailExisteDejaException {
+        con.setAutoCommit(false);
+        try ( PreparedStatement chercheEmail = con.prepareStatement(
+                "select idPersonne from personne where email = ?")) {
+            chercheEmail.setString(1, email);
+            ResultSet testEmail = chercheEmail.executeQuery();
+            if (testEmail.next()) {
+                throw new EmailExisteDejaException();
+            }
+            try ( PreparedStatement pst = con.prepareStatement(
+                    """
+                insert into personne (email, nom, prenom, password, codePostal, ville) values (?,?,?,?,?,?)
+                """, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                pst.setString(1, email);
+                pst.setString(2, nom);
+                pst.setString(3, prenom);
+                pst.setString(4, pass);
+                pst.setString(5, codePostal);
+                pst.setString(6, ville);
+                pst.executeUpdate();
+                con.commit();
+                try ( ResultSet rid = pst.getGeneratedKeys()) {
+                    rid.next();
+                    int id = rid.getInt(1);
+                    return id;
+                }
+            }
+        } catch (Exception ex) {
+            con.rollback();
+            throw ex;
+        } finally {
+            con.setAutoCommit(true);
+        }
+    }  
+    
+    public static String login(Connection con, String email, String pass) throws SQLException {
+        try ( PreparedStatement pst = con.prepareStatement(
+                "select idPersonne from personne where email = ? and password = ?")) {
+            pst.setString(1, email);
+            pst.setString(2, pass);
+            ResultSet res = pst.executeQuery();
+            if (res.next()) {
+                return email;
+            } else {
+                return null;
+            }
+        }catch(SQLException ex){
+            System.out.println("Email ou Mot de passe Incorrect !!!");
+            return null;
+        }
+    }
 }
