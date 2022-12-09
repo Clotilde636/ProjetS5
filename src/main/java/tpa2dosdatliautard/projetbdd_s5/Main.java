@@ -51,7 +51,7 @@ public class Main {
 
     public static Connection defautConnect()
             throws ClassNotFoundException, SQLException {
-        return connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "pass");
+        return connectGeneralPostGres("localhost", 5432, "postgres", "postgres", "passe");
     }
     
     public static void menuSimple (Connection con) throws SQLException, EmailExisteDejaException{
@@ -269,7 +269,7 @@ public class Main {
             } catch (SQLException ex) {
                 throw new Error(ex);
             }
-}
+        }
     }
     
     public static void menuAdministrateur (Connection con, String admin) throws SQLException, EmailExisteDejaException{
@@ -355,7 +355,7 @@ public class Main {
             } catch (SQLException ex) {
                 throw new Error(ex);
             }
-}
+        }
     }
     
     public static void menuComplet (Connection con) throws EmailExisteDejaException{

@@ -22,7 +22,7 @@ public class MainInterface extends Application {
     public void start(Stage stage) {
         Scene sc = new Scene(new SceneLogin());  //Heritage des propriétés de la classe SceneDefaut
         stage.setWidth(300);
-        stage.setHeight(250);
+        stage.setHeight(300);
         stage.setScene(sc);
         stage.setTitle("Login");
         stage.show();

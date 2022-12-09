@@ -72,7 +72,8 @@ public class Personne {
             if (res.next()) {
                 return email;
             } else {
-                return null;
+                String erreur="erreur";
+                return erreur;
             }
         }catch(SQLException ex){
             System.out.println("Email ou Mot de passe Incorrect !!!");
