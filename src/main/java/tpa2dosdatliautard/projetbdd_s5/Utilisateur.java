@@ -8,6 +8,7 @@ public class Utilisateur extends Personne {
     //Attributs 
     private String nom;
     private String prenom;
+    private String mdp;
     private String codePostal;
     private String ville;
     
@@ -152,18 +153,73 @@ public class Utilisateur extends Personne {
         }
     }
     
-    public static void UpdateNomUtilisateur (Connection con, int id, String nom){        
+    public static void UpdateNomUtilisateur (Connection con, String mail, String nom) throws SQLException{ 
+        con.setAutoCommit(false);
+        try{
+            PreparedStatement pst = con.prepareStatement("UPDATE personne SET nom = ? WHERE email = ? ");
+            pst.setString(1,nom);
+            pst.setString(2, mail);
+            pst.executeUpdate();
+            con.commit();
+        }
+        catch(SQLException ex){
+            System.out.println(ex);
+        }   
     }
     
-    public static void UpdatePrenomUtilisateur (Connection con, int id, String prenom){        
+    public static void UpdatePrenomUtilisateur (Connection con, String mail, String prenom) throws SQLException{
+        con.setAutoCommit(false);
+        try{
+            PreparedStatement pst = con.prepareStatement("UPDATE personne SET prenom = ? WHERE email = ? ");
+            pst.setString(1,prenom);
+            pst.setString(2, mail);
+            pst.executeUpdate();
+            con.commit();
+        }
+        catch(SQLException ex){
+            System.out.println(ex);
+        }
     }
     
-    public static void UpdatePasswordUtilisateur (Connection con, int id, String pass){        
+    public static void UpdatePasswordUtilisateur (Connection con, String mail, String pass)throws SQLException{
+    con.setAutoCommit(false);
+        try{
+            PreparedStatement pst = con.prepareStatement("UPDATE personne SET password = ? WHERE email = ? ");
+            pst.setString(1,pass);
+            pst.setString(2, mail);
+            pst.executeUpdate();
+            con.commit();
+        }
+        catch(SQLException ex){
+            System.out.println(ex);
+        }
     }
     
-    public static void UpdateCodePostalUtilisateur (Connection con, int id, String codePostal){        
+    public static void UpdateCodePostalUtilisateur (Connection con, String mail, String codePostal) throws SQLException{  
+        con.setAutoCommit(false);
+        try{
+            PreparedStatement pst = con.prepareStatement("UPDATE personne SET codepostal = ? WHERE email = ? ");
+            pst.setString(1,codePostal);
+            pst.setString(2, mail);
+            pst.executeUpdate();
+            con.commit();
+        }
+        catch(SQLException ex){
+            System.out.println(ex);
+        }   
     }
     
-    public static void UpdateVilleUtilisateur (Connection con, int id, String vill){        
+    public static void UpdateVilleUtilisateur (Connection con, String mail, String ville)throws SQLException{
+    con.setAutoCommit(false);
+        try{
+            PreparedStatement pst = con.prepareStatement("UPDATE personne SET ville = ? WHERE email = ? ");
+            pst.setString(1,ville);
+            pst.setString(2, mail);
+            pst.executeUpdate();
+            con.commit();
+        }
+        catch(SQLException ex){
+            System.out.println(ex);
+        }   
     }
 }

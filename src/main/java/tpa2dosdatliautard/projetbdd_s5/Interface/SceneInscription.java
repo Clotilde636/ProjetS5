@@ -118,6 +118,10 @@ public class SceneInscription extends GridPane{
             }
             catch(Utilisateur.EmailExisteDejaException pb_mail){
                 System.out.println("cet e-mail est déjà utilisé");
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Erreur");
+                alert.setHeaderText("Cette adresse mail est déjà utilisée");       
+                alert.showAndWait();
             }
         }
         else{
