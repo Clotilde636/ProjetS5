@@ -99,15 +99,32 @@ public class SceneInscription extends GridPane{
 
     //méthode appelée lorsque btInscription est cliqué 
     public void DoInscription(){
+        String prenom = this.txtf_prenom.getText();
+        String nom = this.txtf_nom.getText();
+        String mail = this.txtf_mail.getText();
+        String ville = this.txtf_ville.getText();
+        String codePostal = this.txtf_codePostal.getText();
         String mdp1 = this.pwf_mdp.getText();
         String mdp2 = this.pwf_mdpverif.getText();
-        if(mdp1.equals(mdp2)){
-            String prenom = this.txtf_prenom.getText();
-            String nom = this.txtf_nom.getText();
-            String mail = this.txtf_mail.getText();
-            String ville = this.txtf_ville.getText();
-            String codePostal = this.txtf_codePostal.getText();
+        if(prenom.equals("")||nom.equals("")||mail.equals("")||ville.equals("")||codePostal.equals("")||mdp1.equals("")){
+            System.out.println("prenom vide");
+            Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle("Erreur");
+            alert.setHeaderText("Toutes les données doivent être renseignées!");       
+            alert.showAndWait();
+        }
+        else if(!mdp1.equals(mdp2)){
+            System.out.println("Erreur: les mots de passe sont différents");
+            Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle("Erreur");
+            alert.setHeaderText("Attention, les mots de passe saisis ne sont pas identiques!");
+            alert.setContentText("Vérifiez que votre mot de passe est le même dans les 2 champs de saisie, puis réessayez de vous inscrire.");            
+            alert.showAndWait();
+            
+        }
+        else{ //Si aucun champ vide et mdp1=mdp2
             try(Connection con = Main.defautConnect()){
+                
                 Personne.creerPersonne(con, mail, mdp1, nom, prenom, codePostal, ville);
                 Stage stage = (Stage) btInscription.getScene().getWindow();
                 stage.close();
@@ -123,14 +140,6 @@ public class SceneInscription extends GridPane{
                 alert.setHeaderText("Cette adresse mail est déjà utilisée");       
                 alert.showAndWait();
             }
-        }
-        else{
-            System.out.println("Erreur: les mots de passe sont différents");
-            Alert alert = new Alert(AlertType.WARNING);
-            alert.setTitle("Erreur");
-            alert.setHeaderText("Attention, les mots de passe saisis ne sont pas identiques!");
-            alert.setContentText("Vérifiez que votre mot de passe est le même dans les 2 champs de saisie, puis réessayez de vous inscrire.");            
-            alert.showAndWait();
         }
             
     }
