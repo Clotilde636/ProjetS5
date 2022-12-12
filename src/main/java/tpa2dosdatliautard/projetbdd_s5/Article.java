@@ -2,6 +2,8 @@ package tpa2dosdatliautard.projetbdd_s5;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import static tpa2dosdatliautard.projetbdd_s5.Categorie.IdentifierCategorieArticle;
 
 public class Article {
@@ -21,13 +23,13 @@ public class Article {
     
 //Méthodes Get Set
     //pas de méthode get set pour idArticle, car public et final
-    public int get_categorie(){
-        return this.categorie;
+    public int getCategorie(){//pour que PropertyValueFactory fonctionne, il faut que les get/set respectent strictement la syntaxe: getAttribut 
+        return this.categorie;  //par exemple, get_categorie et getcategorie ne fonctionne pas ! ,mut$l^-or-'è=o)etyàietykp$ùmlm
     } 
-    public String get_description_C(){
+    public String getDescription_C(){
         return this.description_C;
     } 
-    public String get_description_D(){
+    public String getDescription_D(){
         return this.description_D;
     } 
     public void set_categorie(int newCategorie) {
@@ -107,6 +109,22 @@ public class Article {
         }
     }
     
+    public static ObservableList<Article> GetAllArticlesUtilisateur (Connection con, String email) throws SQLException {
+        ObservableList<Article> obslist = FXCollections.observableArrayList();
+        try ( PreparedStatement pst = con.prepareStatement(
+                "select * from articles where emailVendeur = ? "
+        )) {
+            pst.setString(1, email);
+            try ( ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    obslist.add(new Article(rs.getInt("idArticle"),rs.getInt("idCategorie"),
+                                    rs.getString("descriptionC"), rs.getString("DescriptionL")));
+                }
+                return obslist;
+            }
+        }
+    }
+    
     public static Article ArticleEnchere (Connection con, int idArticle) throws SQLException {
         Article res = null;
         try ( PreparedStatement pst = con.prepareStatement(
@@ -153,7 +171,7 @@ public class Article {
     public static void UpdateDescriptionCArticle (Connection con, int id, String descriptionC){   
     }
     
-    public static void UpdateDescriptionLArticle (Connection con, int id, String descriptionL){   
+    public static void UpdateDescriptionArticle (Connection con, int id, String descriptionL){   
     }
     
     public static void UpdateCatégorieArticle (Connection con, int id, int idCategorie){   

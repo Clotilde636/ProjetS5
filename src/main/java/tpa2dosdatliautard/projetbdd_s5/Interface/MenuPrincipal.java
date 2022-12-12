@@ -12,8 +12,8 @@ public class MenuPrincipal { //extends Application{
 
     public void start(Stage stage, String mail) {
         Scene sc = new Scene(new SceneMenu(mail));  //appelle le constructeur de la classe SceneMenu
-//        stage.setWidth(600);
-//        stage.setHeight(100); Voir SceneLogin.checkID()
+        stage.setWidth(700);
+        stage.setHeight(500);
         stage.setScene(sc);
         stage.setTitle("Menu Principal");
         stage.show();

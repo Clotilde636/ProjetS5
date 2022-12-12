@@ -104,8 +104,8 @@ public class SceneLogin extends GridPane{
                     Stage StageMenu = new Stage();
                     MenuPrincipal menu = new MenuPrincipal();
                     menu.start(StageMenu,id);
-                    StageMenu.setWidth(700);
-                    StageMenu.setHeight(500);
+                    //StageMenu.setWidth(700);
+                    //StageMenu.setHeight(500); voir MenuPrincipal
                     StageMenu.show();
                     //Fermeture de la fenêtre login
                     Stage stage = (Stage) btConnexion.getScene().getWindow();
