@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -58,10 +59,9 @@ public class SceneMenu extends TabPane{ //extends TabPane
     private Button btPlaceholder;
     private TableView table_articles;
     private Button btCreerArticle;
-    private Button btDeleteArticle;
+    private Button btDeleteSelectedArticle;
     private Button btDeleteAllArticles;
-    private Label labeldeletearticle;
-    private TextField txtf_deleteArticle;
+
     
     //Constructeur
     public SceneMenu(String mail) {       
@@ -206,19 +206,13 @@ public class SceneMenu extends TabPane{ //extends TabPane
         bord_sup.setPercentHeight(5);
         grilleArticles.getRowConstraints().add(bord_sup);
         RowConstraints row_table = new RowConstraints();
-        row_table.setPercentHeight(65);
+        row_table.setPercentHeight(70);
         grilleArticles.getRowConstraints().add(row_table);
-        RowConstraints row_addArticle = new RowConstraints();
-        row_addArticle.setPercentHeight(7);
-        grilleArticles.getRowConstraints().add(row_addArticle);
-        RowConstraints row_labeldelete = new RowConstraints();
-        row_labeldelete.setPercentHeight(4);
-        grilleArticles.getRowConstraints().add(row_labeldelete);
-        RowConstraints row_deleteArticle = new RowConstraints();
-        row_deleteArticle.setPercentHeight(7);
-        grilleArticles.getRowConstraints().add(row_deleteArticle);
+        RowConstraints row_AddOrDeleteArticle = new RowConstraints();
+        row_AddOrDeleteArticle.setPercentHeight(10);
+        grilleArticles.getRowConstraints().add(row_AddOrDeleteArticle);
         RowConstraints row_deleteall = new RowConstraints();
-        row_deleteall.setPercentHeight(7);
+        row_deleteall.setPercentHeight(10);
         grilleArticles.getRowConstraints().add(row_deleteall);
         RowConstraints bord_inf = new RowConstraints();
         bord_inf.setPercentHeight(5);
@@ -245,31 +239,28 @@ public class SceneMenu extends TabPane{ //extends TabPane
         table_articles.setItems(obslist_articles);
     //Instanciation Divers
         this.btCreerArticle = new Button("Ajouter un nouvel article");
-        btCreerArticle.setMaxHeight(USE_PREF_SIZE);
+        btCreerArticle.setMaxHeight(Double.MAX_VALUE);
         btCreerArticle.setMaxWidth(Double.MAX_VALUE);
-        this.btDeleteArticle = new Button("Supprimer cet article");
-        btDeleteArticle.setMaxHeight(USE_PREF_SIZE);
-        btDeleteArticle.setMaxWidth(Double.MAX_VALUE);
+        this.btDeleteSelectedArticle = new Button("Supprimer l'article sélectionné");
+        btDeleteSelectedArticle.setMaxHeight(Double.MAX_VALUE);
+        btDeleteSelectedArticle.setMaxWidth(Double.MAX_VALUE);
         this.btDeleteAllArticles = new Button("Supprimer tous mes articles");
         btDeleteAllArticles.setMaxHeight(USE_PREF_SIZE);
         btDeleteAllArticles.setMaxWidth(Double.MAX_VALUE);
         btDeleteAllArticles.setStyle("-fx-background-color:#ff3333"); //bouton en rouge
-        this.txtf_deleteArticle = new TextField();
-        this.labeldeletearticle = new Label("Nom de l'Article:");
     //Localisation des composants sur grilleArticles
         //grilleArticles.add(btPlaceholder,1,0);
         grilleArticles.add(table_articles,1,1,2,1);
         grilleArticles.add(btCreerArticle,1,2);
-        grilleArticles.add(labeldeletearticle,2,3);
-        grilleArticles.add(btDeleteArticle,1,4);
-        grilleArticles.add(txtf_deleteArticle,2,4);
-        grilleArticles.add(btDeleteAllArticles,1,5);
+        grilleArticles.add(btDeleteSelectedArticle,2,2);
+        grilleArticles.add(btDeleteAllArticles,1,3);
+
     
     //Gestion des evenements (tab Articles)
         this.btPlaceholder.setOnAction((event) -> {this.methodetest();});
         this.btCreerArticle.setOnAction((event) -> {this.askDataArticle(mail);});
-        this.btDeleteArticle.setOnAction((event) -> {this.DeleteArticle(mail,btDeleteArticle,txtf_deleteArticle);});
-        this.btDeleteAllArticles.setOnAction((event) -> {this.DeleteAllArticles(mail,btDeleteArticle);});
+        this.btDeleteAllArticles.setOnAction((event) -> {this.DeleteAllArticles(mail,btDeleteAllArticles);});
+        this.btDeleteSelectedArticle.setOnAction((event) -> {this.DeleteSelectedArticle(mail,btDeleteSelectedArticle);});
     
 //Instanciation et Mise en forme des Tab
         Tab tabProfil = new Tab("Mon Compte",grilleProfil);      
@@ -325,6 +316,36 @@ public class SceneMenu extends TabPane{ //extends TabPane
             catch(ClassNotFoundException | SQLException ex){
                 System.out.println("la connexion à la base de données a échoué");
         }
+    }
+    
+    public void DeleteSelectedArticle(String mail, Button bt){
+        Article article = (Article) table_articles.getSelectionModel().getSelectedItem();
+        if(article!=null){
+            String nomArticle = article.getDescription_C();
+            //System.out.println(nomArticle);
+            try(Connection con = Main.defautConnect()){
+                System.out.println(nomArticle);
+                Article.DeleteArticle(con, mail, nomArticle);
+                //System.out.println("connexion à la base de données réussie");
+                Stage stage = (Stage) bt.getScene().getWindow();
+                stage.close();
+                Stage StageMenu = new Stage();
+                MenuPrincipal menu = new MenuPrincipal();
+                menu.start(StageMenu,mail);
+                StageMenu.show();
+                }
+            catch(ClassNotFoundException | SQLException ex){
+                System.out.println("la connexion à la base de données a échoué");
+            }
+        }
+        else{
+            //System.out.println("aucune sélection");
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Erreur");
+            alert.setHeaderText("Aucun article n'a été sélectionné!");       
+            alert.showAndWait();
+        }
+        
     }
     
     public void DeleteAllArticles(String mail,Button bt){
