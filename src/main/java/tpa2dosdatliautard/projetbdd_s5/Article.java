@@ -63,6 +63,33 @@ public class Article {
         }
     }
     
+    public static void DeleteAllArticles (Connection con,String mail) throws SQLException {
+        con.setAutoCommit(false);
+        try{
+            PreparedStatement pst = con.prepareStatement("DELETE from articles WHERE emailVendeur = ?");
+            pst.setString(1,mail);
+            pst.executeUpdate();
+            con.commit();
+        }
+        catch(SQLException ex){
+            System.out.println(ex);
+        }   
+    }
+    
+    public static void DeleteArticle (Connection con,String mail, String nomArticle) throws SQLException {
+        con.setAutoCommit(false);
+        try{
+            PreparedStatement pst = con.prepareStatement("DELETE from articles WHERE emailVendeur = ? and descriptionc = ?");
+            pst.setString(1,mail);
+            pst.setString(2,nomArticle);
+            pst.executeUpdate();
+            con.commit();
+        }
+        catch(SQLException ex){
+            System.out.println(ex);
+        }   
+    }
+    
     public static List<Article> touslesArticles (Connection con) throws SQLException {
         List<Article> res = new ArrayList<>();
         try ( PreparedStatement pst = con.prepareStatement(

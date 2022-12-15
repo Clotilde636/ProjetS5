@@ -76,10 +76,16 @@ public class SceneArticle extends GridPane{
         
         //Gestion des événements
         this.btAjouter.setOnAction((event) -> {this.CreerArticle(mail);}); 
-        this.btAnnuler.setOnAction((event) -> {this.fermerStage();});
+        this.btAnnuler.setOnAction((event) -> {this.fermerStage(mail);});
     }
     
-    public void fermerStage(){
+    public void fermerStage(String mail){
+        //reouverture menu
+        Stage StageMenu = new Stage();
+        MenuPrincipal menu = new MenuPrincipal();
+        menu.start(StageMenu,mail);
+        StageMenu.show();
+        //fermeture fenetre nouvel article
         Stage stage = (Stage) btAnnuler.getScene().getWindow();
         stage.close();
     }
@@ -111,8 +117,7 @@ public class SceneArticle extends GridPane{
             }
             try(Connection con = Main.defautConnect()){               
                 Article.creerArticle(con, mail, nom, description, idcategorie);
-                Stage stage = (Stage) btAjouter.getScene().getWindow();
-                stage.close();
+                fermerStage(mail);
                 //System.out.println("connexion à la base de données réussie");
             }
             catch(ClassNotFoundException | SQLException ex){

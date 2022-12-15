@@ -59,6 +59,9 @@ public class SceneMenu extends TabPane{ //extends TabPane
     private TableView table_articles;
     private Button btCreerArticle;
     private Button btDeleteArticle;
+    private Button btDeleteAllArticles;
+    private Label labeldeletearticle;
+    private TextField txtf_deleteArticle;
     
     //Constructeur
     public SceneMenu(String mail) {       
@@ -200,14 +203,27 @@ public class SceneMenu extends TabPane{ //extends TabPane
         grilleArticles.getColumnConstraints().add(marge_droite);
         //lignes
         RowConstraints bord_sup = new RowConstraints();
-        bord_sup.setPercentHeight(10);
+        bord_sup.setPercentHeight(5);
         grilleArticles.getRowConstraints().add(bord_sup);
-        RowConstraints row_milieu = new RowConstraints();
-        row_milieu.setPercentHeight(75);
-        grilleArticles.getRowConstraints().add(row_milieu);
+        RowConstraints row_table = new RowConstraints();
+        row_table.setPercentHeight(65);
+        grilleArticles.getRowConstraints().add(row_table);
+        RowConstraints row_addArticle = new RowConstraints();
+        row_addArticle.setPercentHeight(7);
+        grilleArticles.getRowConstraints().add(row_addArticle);
+        RowConstraints row_labeldelete = new RowConstraints();
+        row_labeldelete.setPercentHeight(4);
+        grilleArticles.getRowConstraints().add(row_labeldelete);
+        RowConstraints row_deleteArticle = new RowConstraints();
+        row_deleteArticle.setPercentHeight(7);
+        grilleArticles.getRowConstraints().add(row_deleteArticle);
+        RowConstraints row_deleteall = new RowConstraints();
+        row_deleteall.setPercentHeight(7);
+        grilleArticles.getRowConstraints().add(row_deleteall);
         RowConstraints bord_inf = new RowConstraints();
-        bord_inf.setPercentHeight(15);
+        bord_inf.setPercentHeight(5);
         grilleArticles.getRowConstraints().add(bord_inf);
+        //marges
         grilleArticles.setVgap(10);   //10 pixels de marge verticale entre composants
         grilleArticles.setHgap(10);   //10 pixels de marge horizontale entre composants 
         
@@ -231,18 +247,29 @@ public class SceneMenu extends TabPane{ //extends TabPane
         this.btCreerArticle = new Button("Ajouter un nouvel article");
         btCreerArticle.setMaxHeight(USE_PREF_SIZE);
         btCreerArticle.setMaxWidth(Double.MAX_VALUE);
-        this.btDeleteArticle = new Button("Supprimer un article");
+        this.btDeleteArticle = new Button("Supprimer cet article");
         btDeleteArticle.setMaxHeight(USE_PREF_SIZE);
         btDeleteArticle.setMaxWidth(Double.MAX_VALUE);
+        this.btDeleteAllArticles = new Button("Supprimer tous mes articles");
+        btDeleteAllArticles.setMaxHeight(USE_PREF_SIZE);
+        btDeleteAllArticles.setMaxWidth(Double.MAX_VALUE);
+        btDeleteAllArticles.setStyle("-fx-background-color:#ff3333"); //bouton en rouge
+        this.txtf_deleteArticle = new TextField();
+        this.labeldeletearticle = new Label("Nom de l'Article:");
     //Localisation des composants sur grilleArticles
-        grilleArticles.add(btPlaceholder,1,0);
+        //grilleArticles.add(btPlaceholder,1,0);
         grilleArticles.add(table_articles,1,1,2,1);
         grilleArticles.add(btCreerArticle,1,2);
-        grilleArticles.add(btDeleteArticle,2,2);
+        grilleArticles.add(labeldeletearticle,2,3);
+        grilleArticles.add(btDeleteArticle,1,4);
+        grilleArticles.add(txtf_deleteArticle,2,4);
+        grilleArticles.add(btDeleteAllArticles,1,5);
     
     //Gestion des evenements (tab Articles)
         this.btPlaceholder.setOnAction((event) -> {this.methodetest();});
         this.btCreerArticle.setOnAction((event) -> {this.askDataArticle(mail);});
+        this.btDeleteArticle.setOnAction((event) -> {this.DeleteArticle(mail,btDeleteArticle,txtf_deleteArticle);});
+        this.btDeleteAllArticles.setOnAction((event) -> {this.DeleteAllArticles(mail,btDeleteArticle);});
     
 //Instanciation et Mise en forme des Tab
         Tab tabProfil = new Tab("Mon Compte",grilleProfil);      
@@ -251,9 +278,10 @@ public class SceneMenu extends TabPane{ //extends TabPane
         this.getTabs().add(1, tabProfil);
     }
     
-    public void refresh(){
-        table_articles.refresh();
-    }
+    
+    
+   
+    
     
     //Fonction qui renvoie la liste des articles d'un utilisateur
     public ObservableList<Article> getAllArticlesUtilisateur(String mail) {
@@ -277,16 +305,53 @@ public class SceneMenu extends TabPane{ //extends TabPane
         MenuArticle menuarticle = new MenuArticle();
         menuarticle.start(StageNewArticle, mail);
         StageNewArticle.show();
+        Stage stage = (Stage) btCreerArticle.getScene().getWindow();
+        stage.close();
     } 
+    
+    public void DeleteArticle(String mail,Button bt,TextField txtf){
+        try(Connection con = Main.defautConnect()){
+            String nomArticle = txtf.getText();
+            System.out.println(nomArticle);
+            Article.DeleteArticle(con, mail, nomArticle);
+            //System.out.println("connexion à la base de données réussie");
+            Stage stage = (Stage) bt.getScene().getWindow();
+            stage.close();
+            Stage StageMenu = new Stage();
+            MenuPrincipal menu = new MenuPrincipal();
+            menu.start(StageMenu,mail);
+            StageMenu.show();
+            }
+            catch(ClassNotFoundException | SQLException ex){
+                System.out.println("la connexion à la base de données a échoué");
+        }
+    }
+    
+    public void DeleteAllArticles(String mail,Button bt){
+        try(Connection con = Main.defautConnect()){
+            Article.DeleteAllArticles(con, mail);
+            //System.out.println("connexion à la base de données réussie");
+            Stage stage = (Stage) bt.getScene().getWindow();
+            stage.close();
+            Stage StageMenu = new Stage();
+            MenuPrincipal menu = new MenuPrincipal();
+            menu.start(StageMenu,mail);
+            StageMenu.show();
+            }
+            catch(ClassNotFoundException | SQLException ex){
+                System.out.println("la connexion à la base de données a échoué");
+            }
+    }
     
     //méthode appelée lorque le bouton "btPlaceholder" est cliqué
     public void methodetest() {
         System.out.println("bouton cliqué");
+        //bouton.getScene().getWindow().setWidth(bouton.getScene().getWidth()+10);
     }   
     
     //méthode appelée lorque btDeconnexion est cliqué
     public void DoDeconnexion() {
-        System.out.println("Attempting Deconnexion...");       
+        //System.out.println("Attempting Deconnexion...");       
         //Fermeture menu principal
         Stage stage = (Stage) btDeconnexion.getScene().getWindow();
         stage.close();
@@ -380,5 +445,18 @@ public class SceneMenu extends TabPane{ //extends TabPane
             catch(SQLException ex){
                 System.out.println(ex);
             } 
-    }  
+    } 
+    
+    public void RefreshScene(String mail,Button bt){
+        Stage stage = (Stage) bt.getScene().getWindow();
+        stage.close();
+        Stage StageMenu = new Stage();
+        MenuPrincipal menu = new MenuPrincipal();
+        menu.start(StageMenu,mail);
+        StageMenu.show();   
+    }
+    
+     public void refresh(){
+        table_articles.refresh();
+    }
 }

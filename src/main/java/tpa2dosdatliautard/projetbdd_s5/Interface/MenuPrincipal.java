@@ -13,7 +13,7 @@ public class MenuPrincipal { //extends Application{
     public void start(Stage stage, String mail) {
         Scene sc = new Scene(new SceneMenu(mail));  //appelle le constructeur de la classe SceneMenu
         stage.setWidth(700);
-        stage.setHeight(500);
+        stage.setHeight(600);
         stage.setScene(sc);
         stage.setTitle("Menu Principal");
         stage.show();
