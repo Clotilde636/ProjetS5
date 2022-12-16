@@ -61,7 +61,8 @@ public class SceneMenu extends TabPane{ //extends TabPane
     private Button btCreerArticle;
     private Button btDeleteSelectedArticle;
     private Button btDeleteAllArticles;
-
+//Attributs tab Encheres
+    private GrilleEnchere grilleEnchere;
     
     //Constructeur
     public SceneMenu(String mail) {       
@@ -261,12 +262,18 @@ public class SceneMenu extends TabPane{ //extends TabPane
         this.btCreerArticle.setOnAction((event) -> {this.askDataArticle(mail);});
         this.btDeleteAllArticles.setOnAction((event) -> {this.DeleteAllArticles(mail,btDeleteAllArticles);});
         this.btDeleteSelectedArticle.setOnAction((event) -> {this.DeleteSelectedArticle(mail,btDeleteSelectedArticle);});
-    
+
+//partie constructeur tab Profil
+    //Instanciation et Mise en forme du GridPane
+        this.grilleEnchere = new GrilleEnchere(mail);
+        
 //Instanciation et Mise en forme des Tab
         Tab tabProfil = new Tab("Mon Compte",grilleProfil);      
-        Tab tabArticles = new Tab("Mes Articles",grilleArticles);  
-        this.getTabs().add(0,tabArticles);
-        this.getTabs().add(1, tabProfil);
+        Tab tabArticles = new Tab("Mes Articles",grilleArticles);
+        Tab tabEncheres = new Tab("Mes Enchères",grilleEnchere);
+        this.getTabs().add(0, tabEncheres);
+        this.getTabs().add(1,tabArticles);
+        this.getTabs().add(2, tabProfil);        
     }
     
     
