@@ -14,4 +14,11 @@
                 <goal>javafx:run</goal>
             </goals>
         </action>
+        <action>
+            <actionName>CUSTOM-javafx:run</actionName>
+            <displayName>javafx:run</displayName>
+            <goals>
+                <goal>javafx:run</goal>
+            </goals>
+        </action>
     </actions>

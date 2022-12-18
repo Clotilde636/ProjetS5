@@ -17,6 +17,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import static tpa2dosdatliautard.projetbdd_s5.Article.ArticleEnchere;
 
 /**
@@ -46,22 +48,22 @@ public class Encheres {
     }
     
     //Méthodes Get Set 
-    public int get_idEncheres(){
+    public int getIdEncheres(){
         return this.idEncheres;
     } 
-    public String get_dateDebut(){
+    public String getDateDebut(){
         return this.dateDebut;
     } 
-    public String get_dateFin(){
+    public String getDateFin(){
         return this.dateFin;
     } 
-    public int get_idArticle(){
+    public int getIdArticle(){
         return this.idArticle;
     } 
-    public int get_etatEnchere(){
+    public int getEtatEnchere(){
         return this.etatEnchere;
     } 
-    public float get_prix(){
+    public float getPrix(){
         return this.prix;
     } 
     //public String get_email(){
@@ -275,6 +277,49 @@ public class Encheres {
                     int id = rid.getInt(1);
                     return id;
             }    
+        }
+    }  
+    
+    public static void DeleteEnchere (Connection con,String mail, int idEnchere) throws SQLException {
+        con.setAutoCommit(false);
+        try{
+            PreparedStatement pst = con.prepareStatement("DELETE from encheres WHERE emailVendeur = ? and idenchere = ?");
+            pst.setString(1,mail);
+            pst.setInt(2,idEnchere);
+            pst.executeUpdate();
+            con.commit();
+        }
+        catch(SQLException ex){
+            System.out.println(ex);
+        }   
+    }
+    
+    public static void DeleteAllEncheres (Connection con,String mail) throws SQLException {
+        con.setAutoCommit(false);
+        try{
+            PreparedStatement pst = con.prepareStatement("DELETE from encheres WHERE emailVendeur = ?");
+            pst.setString(1,mail);
+            pst.executeUpdate();
+            con.commit();
+        }
+        catch(SQLException ex){
+            System.out.println(ex);
+        }   
+    }
+    
+    public static ObservableList<Encheres> GetAllEncheresUtilisateur (Connection con, String email) throws SQLException {
+        ObservableList<Encheres> obslist = FXCollections.observableArrayList();
+        try ( PreparedStatement pst = con.prepareStatement(
+                "select * from encheres where emailVendeur = ? "
+        )) {
+            pst.setString(1, email);
+            try ( ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    obslist.add(new Encheres(rs.getInt("idEnchere"),rs.getString("dateDebut"),rs.getString("dateFin"),
+                                    rs.getInt("idArticle"),rs.getInt("etatEnchere"),rs.getFloat("prix")));
+                }
+                return obslist;
+            }
         }
     }
     

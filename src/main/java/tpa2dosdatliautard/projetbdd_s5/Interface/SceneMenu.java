@@ -307,23 +307,23 @@ public class SceneMenu extends TabPane{ //extends TabPane
         stage.close();
     } 
     
-    public void DeleteArticle(String mail,Button bt,TextField txtf){
-        try(Connection con = Main.defautConnect()){
-            String nomArticle = txtf.getText();
-            System.out.println(nomArticle);
-            Article.DeleteArticle(con, mail, nomArticle);
-            //System.out.println("connexion à la base de données réussie");
-            Stage stage = (Stage) bt.getScene().getWindow();
-            stage.close();
-            Stage StageMenu = new Stage();
-            MenuPrincipal menu = new MenuPrincipal();
-            menu.start(StageMenu,mail);
-            StageMenu.show();
-            }
-            catch(ClassNotFoundException | SQLException ex){
-                System.out.println("la connexion à la base de données a échoué");
-        }
-    }
+//    public void DeleteArticle(String mail,Button bt,TextField txtf){
+//        try(Connection con = Main.defautConnect()){
+//            String nomArticle = txtf.getText();
+//            System.out.println(nomArticle);
+//            Article.DeleteArticle(con, mail, nomArticle);
+//            //System.out.println("connexion à la base de données réussie");
+//            Stage stage = (Stage) bt.getScene().getWindow();
+//            stage.close();
+//            Stage StageMenu = new Stage();
+//            MenuPrincipal menu = new MenuPrincipal();
+//            menu.start(StageMenu,mail);
+//            StageMenu.show();
+//            }
+//            catch(ClassNotFoundException | SQLException ex){
+//                System.out.println("la connexion à la base de données a échoué");
+//        }
+//    }
     
     public void DeleteSelectedArticle(String mail, Button bt){
         Article article = (Article) table_articles.getSelectionModel().getSelectedItem();
@@ -355,6 +355,7 @@ public class SceneMenu extends TabPane{ //extends TabPane
         
     }
     
+    //méthode appelée lorque le bouton "DeleteAllArticles" est cliqué
     public void DeleteAllArticles(String mail,Button bt){
         try(Connection con = Main.defautConnect()){
             Article.DeleteAllArticles(con, mail);

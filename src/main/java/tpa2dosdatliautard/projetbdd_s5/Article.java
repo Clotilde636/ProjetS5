@@ -152,6 +152,34 @@ public class Article {
         }
     }
     
+    
+    public static ArrayList<String> GetAllNomArticlesUtilisateur (Connection con, String email) throws SQLException {
+        ArrayList<String> listeNomArticles = new ArrayList<String>();
+        try ( PreparedStatement pst = con.prepareStatement("select * from articles where emailVendeur = ? ")) {
+            pst.setString(1, email);
+            try ( ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    String nom = rs.getString("descriptionc");
+                    listeNomArticles.add(nom);
+                }               
+            }
+        }
+        return listeNomArticles;
+    }
+    
+    public static int getIDarticle (Connection con, String email, String nomArticle) throws SQLException {
+        int id = 0;
+        try ( PreparedStatement pst = con.prepareStatement("SELECT idarticle FROM articles WHERE emailVendeur = ? AND descriptionc = ? ")) {
+            pst.setString(1, email);
+            pst.setString(2, nomArticle);
+            ResultSet rs = pst.executeQuery();
+            while (rs.next()) {
+                id = rs.getInt(1);           
+            }
+        }
+        return id;
+    }
+    
     public static Article ArticleEnchere (Connection con, int idArticle) throws SQLException {
         Article res = null;
         try ( PreparedStatement pst = con.prepareStatement(
