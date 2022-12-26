@@ -112,7 +112,8 @@ public class Encheres {
                         idArticle integer not null,
                         etatEnchere integer not null,
                         emailVendeur varchar(50) not null,
-                        prix float not null
+                        prix float not null,
+                        emailAcheteur varchar(50)
                     )
                     """);
             st.executeUpdate(
@@ -362,13 +363,39 @@ public class Encheres {
             }
         }
     }
-    
-    public static List<Encheres> ProfilEncheresUtilisateur (Connection con, String email) throws SQLException {
+                
+   public static List<Encheres> ProfilEncheresUtilisateur (Connection con, String email) throws SQLException {
         List<Encheres> res = new ArrayList<>();
         try ( PreparedStatement pst = con.prepareStatement(
                 "select * from encheres where emailVendeur = ? "
         )) {
             pst.setString(1, email);
+            try ( ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    res.add(new Encheres(rs.getInt("idEnchere"), rs.getString("dateDebut"),rs.getString("dateFin")
+                   ,rs.getInt("idArticle"),rs.getInt("etatEnchere"),rs.getFloat("prix")));
+                    System.out.println(rs.getInt("idEnchere")+ " : ");
+                    System.out.println("Debut : "+rs.getString("dateDebut"));
+                    System.out.println("Fin : "+rs.getString("dateFin"));
+                    System.out.println("Etat de l'Enchere : "+ToStringEtatEnchere(rs.getInt("etatEnchere")));
+                    System.out.println("======Article "+rs.getInt("idArticle")+" =====");
+                    System.out.println(ArticleEnchere ( con, rs.getInt("idArticle")));
+                    System.out.println("Prix : "+rs.getFloat("prix"));
+                    System.out.println("============================");
+                }
+                return res;
+            }
+        }
+    }
+    
+    //Afficher une liste d'enchère par rapport à la catégorie
+    public static List<Encheres> touteslesEncheresParCategorie (Connection con, int numeroCategorie, int etat) throws SQLException {
+        List<Encheres> res = new ArrayList<>();
+        try ( PreparedStatement pst = con.prepareStatement(
+                "select * from encheres join articles on encheres.idArticle=articles.idArticle where idCategorie = ? and etatEnchere = ?"
+        )) {
+            pst.setInt(1, numeroCategorie);
+            pst.setInt(2, etat);
             try ( ResultSet rs = pst.executeQuery()) {
                 while (rs.next()) {
                     res.add(new Encheres(rs.getInt("idEnchere"), rs.getString("dateDebut"),rs.getString("dateFin")
@@ -388,40 +415,14 @@ public class Encheres {
         }
     }
     
-    //Afficher une liste d'enchère par rapport à la catégorie
-    public static List<Encheres> touteslesEncheresParCategorie (Connection con, int numeroCategorie) throws SQLException{
+    //Afficher une liste d'enchère par rapport à sa description courte
+    public static List<Encheres> touteslesEncheresParDescription (Connection con, String nom, int etat) throws SQLException {
         List<Encheres> res = new ArrayList<>();
         try ( PreparedStatement pst = con.prepareStatement(
-                "select * from encheres where idCategorie = ? "
-        )) {
-            pst.setInt(1, numeroCategorie);
-            try ( ResultSet rs = pst.executeQuery()) {
-                while (rs.next()) {
-                    res.add(new Encheres(rs.getInt("idEnchere"), rs.getString("dateDebut"),rs.getString("dateFin")
-                   ,rs.getInt("idArticle"),rs.getInt("etatEnchere"),rs.getFloat("prix")));
-                    System.out.println(rs.getInt("idEnchere")+ " : ");
-                    System.out.println("Debut : "+rs.getString("dateDebut"));
-                    System.out.println("Fin : "+rs.getString("dateFin"));
-                    System.out.println("Etat de l'Enchere : "+ToStringEtatEnchere(rs.getInt("etatEnchere")));
-                    System.out.println("======Article=====");
-                    System.out.println(ArticleEnchere( con, rs.getInt("idArticle")));
-                    System.out.println("");
-                    System.out.println("Prix : "+rs.getFloat("prix"));
-                    System.out.println("============================");
-                }
-                return res;
-            }
-        }
-    }
-    
-    //Afficher une liste d'enchère active par rapport à la catégorie
-    public static List<Encheres> touteslesEncheresActivesParCategorie (Connection con, int numeroCategorie, int etat) throws SQLException {
-        List<Encheres> res = new ArrayList<>();
-        try ( PreparedStatement pst = con.prepareStatement(
-                "select * from encheres where etatEcnhere = ? and (select * from articles where idCategorie = ?)"
+                "select * from encheres join articles on encheres.idArticle=articles.idArticle where etatEnchere = ? and descriptionC = ?"
         )) {
             pst.setInt(1, etat);
-            pst.setInt(2, numeroCategorie);
+            pst.setString(2, nom+"%");
             try ( ResultSet rs = pst.executeQuery()) {
                 while (rs.next()) {
                     res.add(new Encheres(rs.getInt("idEnchere"), rs.getString("dateDebut"),rs.getString("dateFin")
@@ -443,15 +444,123 @@ public class Encheres {
     
     //Update Statut enchère en cours (1), non en cours (0) ou terminé(-1) par rapport à la date de l'enchère
     //Méthode à effectuer à chaque ouverture de l'application (en actualisant)
-    public void actualisationEtatEnchere () {     
+    public static void actualisationEtatEnchere (Connection con, int idEnchere) throws SQLException {    
+            //System.out.println(idEnchere);
+            String dateheure = LocalDateTime.now().toString();
+            String date = dateheure.substring(0, 10);
+            //System.out.println(date);
+            String resdatedebut = "";
+            String resdatefin = "";
+            
+            String email = null;
+            
+            //Chercher la date de fin et la date de début de l'enchère
+            try ( PreparedStatement pst = con.prepareStatement(
+                "select dateDebut from encheres where idEnchere = ? "
+            )){
+                pst.setInt(1, idEnchere);
+                try ( ResultSet rs = pst.executeQuery()) {
+                    while (rs.next()) {
+                        resdatedebut = rs.getString("dateDebut");
+                        //System.out.println(resdatedebut);
+                    }
+                }
+            } 
+            
+            try ( PreparedStatement pst = con.prepareStatement(
+                "select dateFin from encheres where idEnchere = ? "
+            )){
+                pst.setInt(1, idEnchere);
+                try ( ResultSet rs = pst.executeQuery()) {
+                    while (rs.next()) {
+                        resdatefin = rs.getString("dateFin");
+                        //System.out.println(resdatefin);
+                    }
+                }
+            }
+            
+            Date dateDebut = Date.valueOf(resdatedebut);
+            Date dateFin = Date.valueOf(resdatefin);
+            Date datetodate = Date.valueOf(date);
+            //Comparer les dates avec la date du jour
+            int etat = -2;
+            if (datetodate.before(dateDebut)) {
+                etat = 0;
+            }else if (datetodate.equals(dateDebut)){
+                etat = 1;
+            }else if (datetodate.before(dateFin)) {
+                etat = 1;
+            }else if (datetodate.after(dateFin)){
+                if (EtatEnchereActuel(con,idEnchere)==1){
+                    enchereTermine(con,idEnchere);
+                    
+       
+                    System.out.println("Enchère terminée "+idEnchere+", changement de propriétaire de l'article effectuer !");
+                }
+                etat = -1;    
+            }else if (datetodate.equals(dateFin)){
+                if (EtatEnchereActuel(con,idEnchere)==1){
+                    enchereTermine(con,idEnchere);
+                    System.out.println("Enchère terminée, changement de propriétaire de l'article effectuer !");
+                }
+                etat = -1;
+            }
+            //System.out.println(etat);
+            
+            //Changer l'état dans la BDD
+            try ( PreparedStatement pst = con.prepareStatement(
+                "update encheres set etatEnchere = ? where idEnchere = ? "
+            )) {
+                pst.setInt(1, etat);
+                pst.setInt(2, idEnchere);
+                pst.executeUpdate();
+                con.commit();
+            }
     } 
     
-    //A partir de la date début, choisi l'état de l'enchère en cours (1) ou pas en cours (0)
-    public static int initialisationEtatEnchere( String dateDebut){
-        return 1;
+    //Méthode qui actualise l'état de toutes les enchères
+    public static void actualisationEtatTouteslesEncheres (Connection con) throws SQLException{
+        int res = 1;
+        //Chercher le nombre toutal d'enchère 
+        try ( PreparedStatement pst = con.prepareStatement(
+                "select count(*) from encheres"
+            )) {
+            ResultSet rs = pst.executeQuery();
+            System.out.println(rs);
+                while (rs.next()) {
+                        res = rs.getInt(1);
+                        //System.out.println(res);
+                    }
+            }catch(SQLException e){
+                System.out.println("idEnchere n'existe pas, pas besoin d'actualisation !");
+        }
+        
+        
+        //Itérer l'actualistaion à toutes les enchère
+        for (int i = 1; i <= res; i++) {
+            try{
+                //System.out.println("test");
+                actualisationEtatEnchere(con, i);
+            }catch(SQLException e){
+                //System.out.println("L'enchère numéro "+i+" n'existe plus !");
+                continue;
+            }
+        }
     }
     
-    public static void UpdateEmailEnchere (Connection con, int id, String email){        
+    //A partir de la date début, choisi l'état de l'enchère en cours (1) ou pas en cours (0)
+    public static int initialisationEtatEnchere(String dateDebut){
+        String dateheure = LocalDateTime.now().toString();
+        String date = dateheure.substring(0, 10);
+        Date datedebut = Date.valueOf(dateDebut);
+        Date datetodate = Date.valueOf(date);
+        if (datetodate.equals(datedebut)){
+            return 1;
+        }else if (datetodate.after(datedebut)){
+            return 1;  
+        }else{
+            return 0;
+        }
     }
     
     //Vérifier que l'enchère est pas en cours pour le faire (etatEnchere = 0)
@@ -462,26 +571,115 @@ public class Encheres {
     public static void UpdateDateFinEnchere (Connection con, int id, String dateFin){   
     }
     
-    public static void UpdatePrixEnchere (Connection con, int id, float prix){   
-    }
-    
-    public static void Encherir (Connection con, int idEnchere) throws SQLException{
+    public static void Encherir (Connection con, int idEnchere, float prix, String email) throws SQLException{
         //Vérifier que l'article ne soit pas dans une enchère 
-        //afficher les articles qui ne sont pas dans une enchère
-        con.setAutoCommit(false);
-        try{
-            try ( PreparedStatement pst = con.prepareStatement(
-                    "update from categories where idCategorie = ?")) {
+        
+        float prixenchere = 0;
+        //Comparer le prix proposer avec le prix de l'enchère
+        try ( PreparedStatement pst = con.prepareStatement(
+                "select prix from encheres where idEnchere = ? "
+            )){
                 pst.setInt(1, idEnchere);
-                pst.executeUpdate();
+                try ( ResultSet rs = pst.executeQuery()) {
+                    while (rs.next()) {
+                        prixenchere = rs.getFloat("prix");
+                    }
+                }
             }
+        
+        //Changer le prix s'il est supérieur
+        if (prix > prixenchere){
+            con.setAutoCommit(false);
+            try ( PreparedStatement pst = con.prepareStatement(
+                "update encheres set prix = ? where idEnchere = ? and etatEnchere = 1"
+            )) {
+                pst.setFloat(1, prix);
+                pst.setInt(2, idEnchere);
+                pst.executeUpdate();
             con.commit();
-        } catch (SQLException ex) {
-            con.rollback();
-            throw ex;
-        } finally {
-            con.setAutoCommit(true);
+            }catch (SQLException e){
+                System.out.println("Enchère non en cours ou non existante ?");
+            }
+            
+            //Ajouter l'acheteur
+            try ( PreparedStatement pst = con.prepareStatement(
+                "update encheres set emailAcheteur = ? where idEnchere = ? and etatEnchere = 1"
+            )) {
+                pst.setString(1, email);
+                pst.setInt(2, idEnchere);
+                pst.executeUpdate();
+                con.commit();
+                System.out.println("Vous avez enchérie sur cette enchère !");
+            }catch (SQLException e){
+                System.out.println("Enchère non en cours ou non existante ?");
+            }
+            
+        }else{
+             System.out.println("Le prix n'est pas assez important pour enchérir !!!");
         }
     }
+    
+    //Une fonction qui renvoie l'état de l'enchère
+    public static int EtatEnchereActuel (Connection con, int idEnchere){
+    int etatenchere = -2;
+        //Comparer le prix proposer avec le prix de l'enchère
+        try ( PreparedStatement pst = con.prepareStatement(
+                "select etatEnchere from encheres where idEnchere = ? "
+            )){
+                pst.setInt(1, idEnchere);
+                try ( ResultSet rs = pst.executeQuery()) {
+                    while (rs.next()) {
+                        etatenchere = rs.getInt("etatEnchere");
+                    }
+                }
+            }catch(SQLException e){
+                return -2;
+            } 
+        return etatenchere;  
+    }
+    
+    //Une fonction qui change le propriétaire de l'article (à utiliser à la fin d'une enchère)
+    public static void enchereTermine (Connection con, int idEnchere) throws SQLException{ 
+        int idArticle = -1;
+        String acheteur = null;
+        //Chercher l'IdArticle et le nom de l'acheteur
+        try ( PreparedStatement pst = con.prepareStatement(
+                "select idArticle from encheres where idEnchere = ? "
+            )){
+                pst.setInt(1, idEnchere);
+                try ( ResultSet rs = pst.executeQuery()) {
+                    while (rs.next()) {
+                        idArticle = rs.getInt("etatEnchere");
+                    }
+                }
+            }catch(SQLException e){
+        } 
+        
+        try ( PreparedStatement pst = con.prepareStatement(
+                "select emailAcheteur from encheres where idEnchere = ? "
+            )){
+                pst.setInt(1, idEnchere);
+                try ( ResultSet rs = pst.executeQuery()) {
+                    while (rs.next()) {
+                        acheteur = rs.getString("emailAcheteur");
+                    }
+                }
+            }catch(SQLException e){
+        } 
+        if (acheteur != null){
+        //Changer le propriétaire de l'Article dans la BDD
+            try ( PreparedStatement pst = con.prepareStatement(
+                "update articles set emailVendeur = ? where idArticle = ? "
+            )) {
+                pst.setString(1, acheteur);
+                pst.setInt(2, idArticle);
+                pst.executeUpdate();
+                con.commit();
+            }
+        }
+        
+    }
+
+    //Une fonction qui renvoie l'acheteur et le propriétaire de
 }
 
