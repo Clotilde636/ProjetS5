@@ -6,10 +6,13 @@
 package tpa2dosdatliautard.projetbdd_s5;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import static tpa2dosdatliautard.projetbdd_s5.Encheres.creerEnchere;
-import static tpa2dosdatliautard.projetbdd_s5.Encheres.recreeTout;
+import static tpa2dosdatliautard.projetbdd_s5.Encheres.recreeTout; 
+import static tpa2dosdatliautard.projetbdd_s5.Encheres.touteslesEncheresParCategorie;
+import static tpa2dosdatliautard.projetbdd_s5.Encheres.touteslesEncheresParDescription;
 import static tpa2dosdatliautard.projetbdd_s5.Personne.creerPersonne;
 import static tpa2dosdatliautard.projetbdd_s5.Article.creerArticle;
 import static tpa2dosdatliautard.projetbdd_s5.Utilisateur.EmailExisteDejaException;
@@ -22,7 +25,11 @@ import static tpa2dosdatliautard.projetbdd_s5.Administrateur.DeleteEnchereParDel
 import static tpa2dosdatliautard.projetbdd_s5.Administrateur.DeleteUtilisateur;
 import static tpa2dosdatliautard.projetbdd_s5.Article.ProfilArticleUtilisateur;
 import static tpa2dosdatliautard.projetbdd_s5.Article.touslesArticles;
+import static tpa2dosdatliautard.projetbdd_s5.Categorie.AjouterUneCategorie;
+import static tpa2dosdatliautard.projetbdd_s5.Categorie.touteslesCategories;
+import static tpa2dosdatliautard.projetbdd_s5.Encheres.Encherir;
 import static tpa2dosdatliautard.projetbdd_s5.Encheres.ProfilEncheresUtilisateur;
+import static tpa2dosdatliautard.projetbdd_s5.Encheres.actualisationEtatTouteslesEncheres;
 import static tpa2dosdatliautard.projetbdd_s5.Encheres.initialisationEtatEnchere;
 import static tpa2dosdatliautard.projetbdd_s5.Encheres.touteslesEncheres;
 import static tpa2dosdatliautard.projetbdd_s5.Personne.login;
@@ -51,7 +58,7 @@ public class Main {
 
     public static Connection defautConnect()
             throws ClassNotFoundException, SQLException {
-        return connectGeneralPostGres("localhost", 5432, "postgres", "postgres", "pass");
+        return connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "pass");
     }
     
     public static void menuSimple (Connection con) throws SQLException, EmailExisteDejaException{
@@ -67,9 +74,10 @@ public class Main {
             System.out.println("6) ajouter un utilisateur aléatoire");
             System.out.println("7) ajouter un article");
             System.out.println("8) ajouter une enchère");
-            System.out.println("9) delete un utilisateur");
-            System.out.println("10) delete un article");
-            System.out.println("11) delete une enchère");
+            System.out.println("9) ajouter une catégorie");
+            System.out.println("10) delete un utilisateur");
+            System.out.println("11) delete un article");
+            System.out.println("12) delete une enchère");
             System.out.println("0) quitter");
             rep = Lire.i();
             try {
@@ -127,6 +135,10 @@ public class Main {
                     float prix = Lire.f();
                     creerEnchere(con, email, datedebut, datefin, idArticle, prix); 
                 } else if (rep == 9) {
+                    System.out.println ("Nouvelle catégorie (quand on initialise Autre est la première catégorie):");
+                    String newCategorie = Lire.S();
+                    AjouterUneCategorie ( con,newCategorie);
+                }else if (rep == 10) {
                     afficheTousLesUtilisateur(con);
                     System.out.println ("Email Utilisateur :");
                     String email = Lire.S();
@@ -144,7 +156,7 @@ public class Main {
                     }
                     DeleteUtilisateur(con, email);
                     System.out.println ("Utilisateur "+email+" supprimé");   
-                } else if (rep == 10) {
+                } else if (rep == 11) {
                     touslesArticles(con);
                     System.out.println ("idArticle");
                     int id = Lire.i();
@@ -156,7 +168,7 @@ public class Main {
                     }
                     DeleteArticle(con, id);  
                     System.out.println ("Article "+id+" supprimé");
-                } else if (rep == 11) {
+                } else if (rep == 12) {
                     touteslesEncheres(con);
                     System.out.println ("idEnchere");
                     int id = Lire.i();
@@ -188,8 +200,8 @@ public class Main {
             System.out.println("8) delete une de ses enchères");
             System.out.println("");
             System.out.println("Partie Acheteur :");
-            System.out.println("9) Chercher un article par catégorie");
-            System.out.println("10) Encherir dans une enchère");
+            System.out.println("9) Chercher une enchère par catégorie de l'Article");
+            System.out.println("10) Chercher une enchère par nom de l'Article");
             System.out.println("");
             System.out.println("=============");
             System.out.println("0) Se Déconnecter");
@@ -218,8 +230,8 @@ public class Main {
                     System.out.println("Donnez une descriprion à votre article");
                     String descriptionL = Lire.S();
                     System.out.println ("======Les Catégories=======");
-                    //Afficher les catégories
-                    System.out.println("Choisissez une catégorie pour votre article");
+                    touteslesCategories(con);
+                    System.out.println("Choisissez une catégorie pour votre article en sélectionnant le numéro");
                     int idCategorie = Lire.i();
                     creerArticle(con, emailUtilisateur, descriptionC, descriptionL, idCategorie);
                 } else if (rep == 6) {
@@ -245,9 +257,15 @@ public class Main {
                     int etatenchere = initialisationEtatEnchere(datedebut);
                     System.out.println("Donnez une date de fin pour votre enchère");
                     String datefin = Lire.S();
-                    System.out.println("Donnez un prix minimal pour votre enchère");
-                    float prix = Lire.f();
-                    creerEnchere(con, emailUtilisateur, datedebut, datefin, idArticle, prix);
+                    Date dateDebut = Date.valueOf(datedebut);
+                    Date dateFin = Date.valueOf(datefin);
+                    if (dateDebut.before(dateFin)){
+                        System.out.println("Donnez un prix minimal pour votre enchère");
+                        float prix = Lire.f();
+                        creerEnchere(con, emailUtilisateur, datedebut, datefin, idArticle, prix);
+                    }else{
+                        System.out.println("Erreur : votre date de fin doit être après votre date de début !!");
+                    }
                 } else if (rep == 8) {
                     System.out.println ("======Vos Enchères=======");
                     ProfilEncheresUtilisateur (con, emailUtilisateur);
@@ -262,9 +280,41 @@ public class Main {
                        continue; 
                     }
                 } else if (rep == 9) {
-                      
+                    System.out.println("Choisissez une catégorie (son numéro) :");
+                    touteslesCategories(con);
+                    int idCategorie = Lire.i();
+                    System.out.println("");
+                    touteslesEncheresParCategorie(con,idCategorie,1);
+                    System.out.println("");
+                    System.out.println("Voulez vous enchérir sur une de ses enchères (0=non, 1=oui)");
+                    int decision = Lire.i();
+                    if (decision == 0){
+                        System.out.println("Vous êtes redirigé vers l'accueil !");
+                    }else if (decision == 1){
+                        System.out.println("Choisissez une enchère pour pour enchérir (son numéro):");
+                        int idEnchere = Lire.i();
+                        System.out.println("Quelle prix voulez-vous mettre ?");
+                        float prix = Lire.f();
+                        Encherir(con,idEnchere,prix,emailUtilisateur);
+                        Encherir(con,idEnchere,prix,emailUtilisateur);
+                    }
                 } else if (rep == 10) {
-                    
+                    System.out.println("Entrez un nom d'article dont vous recherchez une enchère :");
+                    String nom = Lire.S();
+                    System.out.println("");
+                    touteslesEncheresParDescription(con,nom,1);
+                    System.out.println("");
+                    System.out.println("Voulez vous enchérir sur une de ses enchères (0=non, 1=oui)");
+                    int decision = Lire.i();
+                    if (decision == 0){
+                        System.out.println("Vous êtes redirigé vers l'accueil !");
+                    }else if (decision == 1){
+                        System.out.println("Choisissez une enchère pour pour enchérir (son numéro):");
+                        int idEnchere = Lire.i();
+                        System.out.println("Quelle prix voulez-vous mettre ?");
+                        float prix = Lire.f();
+                        Encherir(con,idEnchere,prix,emailUtilisateur);
+                    }
                 }
             } catch (SQLException ex) {
                 throw new Error(ex);
@@ -289,8 +339,8 @@ public class Main {
             System.out.println("6) ajouter une enchère");
             System.out.println("");
             System.out.println("Partie Acheteur :");
-            System.out.println("7) Chercher un article par catégorie");
-            System.out.println("8) Encherir dans une enchère");
+            System.out.println("7) Chercher une enchère par catégorie de l'Article");
+            System.out.println("8) Chercher une enchère par nom de l'article");
             System.out.println("");
             System.out.println("Partie Administrateur :");
             System.out.println("9) delete un utilisateur (pas soi-même)");
@@ -310,14 +360,13 @@ public class Main {
                     ProfilArticleUtilisateur (con, admin);
                     System.out.println ("");
                     System.out.println ("======Encheres=======");
-                    
                     System.out.println ("");
                 } else if (rep == 2) {
                     tousLesUtilisateurs(con);
                 } else if (rep == 3) {
-                    //tousLesArticles(con);
+                    touslesArticles(con);
                 } else if (rep == 4) {
-                    //touteLesEnchères(con);
+                    touteslesEncheres(con);
                 } else if (rep == 5) {
                     System.out.println("Dans l'ordre, entrer : description C, description L, idCatégorie(1:meuble, 2:décoration ... autres chiffre: autre");
                     String email = Lire.S();
@@ -355,11 +404,12 @@ public class Main {
             } catch (SQLException ex) {
                 throw new Error(ex);
             }
-        }
+}
     }
     
-    public static void menuComplet (Connection con) throws EmailExisteDejaException{
+    public static void menuComplet (Connection con) throws EmailExisteDejaException, SQLException{
     int rep = -1;
+    actualisationEtatTouteslesEncheres (con);
         while (rep != 0) {
             System.out.println("");
             System.out.println("======Page Accueil=====");
@@ -374,9 +424,9 @@ public class Main {
                     String email = Lire.S();
                     System.out.println("Mot de passe :");
                     String pass = Lire.S();
-                    String emailUtilisateur = null;
+                    String emailUtilisateur = "erreur";
                     emailUtilisateur = login(con, email, pass);
-                    if (emailUtilisateur != null){
+                    if (emailUtilisateur != "erreur"){
                         if (emailUtilisateur == "admin@mail.fr"){
                             String emailAdmin = emailUtilisateur;
                             System.out.println("======BON RETOUR DANS AUCTION ?Admin?======");
