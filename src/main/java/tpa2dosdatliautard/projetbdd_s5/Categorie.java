@@ -36,6 +36,27 @@ public class Categorie {
         this.def = nom;
     }
     
+    //Afficher les catégories
+    public static List<Categorie> touteslesCategories (Connection con) throws SQLException {
+        List<Categorie> res = new ArrayList<>();
+        try ( PreparedStatement pst = con.prepareStatement(
+                """
+               select idCategorie, categorie
+                 from categories
+                 order by idCategorie asc
+               """
+        )) {
+            try ( ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    res.add(new Categorie (rs.getString("categorie")));
+                    System.out.println(rs.getInt("idCategorie")+" : "+rs.getString("categorie"));
+                }
+                System.out.println("============================");
+                return res;
+            }
+        }
+    }
+    
     //Ajouter une catégorie
     public static int AjouterUneCategorie (Connection con, String newCategorie) throws SQLException {
         con.setAutoCommit(false);
