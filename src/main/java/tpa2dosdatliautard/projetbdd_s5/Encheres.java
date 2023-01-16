@@ -558,6 +558,8 @@ public class Encheres {
             return 1;
         }else if (datetodate.after(datedebut)){
             return 1;  
+        }else if (datetodate.before(datedebut)){
+            return -1;
         }else{
             return 0;
         }
